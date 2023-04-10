@@ -25,7 +25,7 @@ def process_data():
     global_multiplier = multiplier  # Store the global multiplier in a separate variable
     global_notes = notes
     for i in range(len(df.iloc[:, 0])):
-        if (type(df.iloc[i, cHr]) != str and df.iloc[i, cHr] > 0 and df.iloc[i, pNUM][:5] != "Total"):
+        if ((type(df.iloc[i, cHr]) != str and df.iloc[i, cHr] > 0 and df.iloc[i, pNUM][:5] != "Total") or (type(df.iloc[i, cEA]) != str and df.iloc[i, cEA] > 0 and df.iloc[i, pNUM][:5] != "Total")):
             current_multiplier = df.iloc[i, mULT] if mULT is not None and df.iloc[i, mULT] > 0 else global_multiplier
             current_notes = str(df.iloc[i, nOTES]) if nOTES is not None and not pd.isna(df.iloc[i, nOTES]) else global_notes
             results_text += df.iloc[i, pNUM] + "\n"
@@ -334,7 +334,7 @@ Export Results\nProcess the data and save results to an Excel file.\n
 Clear Data\nClear the loaded data and start over.
 
 
-This is a limited program with a specific use case. Processing of input is predefined."""
+This is specialized software with a specific use case. Processing of input is predefined."""
 
     messagebox.showinfo("Help", help_text)
 
