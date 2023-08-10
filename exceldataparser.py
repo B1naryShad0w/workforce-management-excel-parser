@@ -28,13 +28,17 @@ def process_data():
         if ((type(df.iloc[i, cHr]) != str and df.iloc[i, cHr] > 0 and df.iloc[i, pNUM][:5] != "Total") or (type(df.iloc[i, cEA]) != str and df.iloc[i, cEA] > 0 and df.iloc[i, pNUM][:5] != "Total")):
             current_multiplier = df.iloc[i, mULT] if mULT is not None and df.iloc[i, mULT] > 0 else global_multiplier
             current_notes = str(df.iloc[i, nOTES]) if nOTES is not None and not pd.isna(df.iloc[i, nOTES]) else global_notes
+            current_invoice = df.iloc[i, iNV] if iNV is not None and df.iloc[i, iNV] > 0 else 0
+            current_newENB = df.iloc[i, pENB] + (df.iloc[i, cLA] * current_multiplier) + df.iloc[i, cEA]
             results_text += df.iloc[i, pNUM] + "\n"
             results_text += "Prior ENB: $" + format(df.iloc[i, pENB], ",.2f") + "\n"
             results_text += "Current Labor Amount: $" + format(df.iloc[i, cLA], ",.2f") + "\n"
             results_text += "Multiplier: " + str(current_multiplier) + "\n"
             results_text += "ENB for this period: $" + format(df.iloc[i, cLA] * current_multiplier, ",.2f") + "\n"
             results_text += "Current Expenses Amount: $" + format(df.iloc[i, cEA], ",.2f") + "\n"
-            results_text += "New ENB: $" + format(df.iloc[i, pENB] + (df.iloc[i, cLA] * current_multiplier) + df.iloc[i, cEA], ",.2f") + "\n"
+            results_text += "New ENB: $" + format(current_newENB, ",.2f") + "\n"
+            results_text += "Invoice Amount for This Period: $" + format(df.iloc[i, iNV], ",.2f") + "\n"
+            results_text += "Ending ENB: $" + format(current_newENB - current_invoice, ",.2f") + "\n"
             if current_notes:
                 results_text += "Notes: " + current_notes + "\n"
             results_text += "\n"
@@ -50,14 +54,15 @@ def save_to_file():
         messagebox.showerror("No data", "Please load and process data first.")
         return
 
-    new_df = pd.DataFrame(columns=['Project Name', 'Project Manager', 'Client Name', 'Contract Total Compensation', 'Prior ENB', 'New ENB', 'Multiplier', 'Average Hourly Rate', 'Remaining Hours to Complete'])
+    new_df = pd.DataFrame(columns=['Project Name', 'Project Manager', 'Client Name', 'Contract Total Compensation', 'Prior ENB', 'New ENB', 'Multiplier', 'Average Hourly Rate', 'Remaining Hours to Complete', 'Invoice Amount for This Period', 'Ending ENB'])
 
-    count = 0
     for i in range(len(df.iloc[:, 0])):
         if (type(df.iloc[i, cTC]) != str and df.iloc[i, cTC] > 0 and df.iloc[i, pNUM][:5] != "Total"):
             current_multiplier = df.iloc[i, mULT] if mULT is not None and df.iloc[i, mULT] > 0 else global_multiplier
             current_rate = df.iloc[i, aHR] if aHR is not None and df.iloc[i, aHR] > 0 else global_rate
+            current_invoice = df.iloc[i, iNV] if iNV is not None and df.iloc[i, iNV] > 0 else 0
             new_enb = round(df.iloc[i, pENB] + (df.iloc[i, cLA] * current_multiplier) + df.iloc[i, cEA], 2)
+            ending_enb = round(new_enb - current_invoice, 2)
 
             new_row = {
                 'Project Name': df.iloc[i, pNUM],
@@ -68,7 +73,9 @@ def save_to_file():
                 'New ENB': new_enb,
                 'Multiplier': current_multiplier,
                 'Average Hourly Rate': current_rate,
-                'Remaining Hours to Complete': round(((df.iloc[i, cTC] * 0.8) - new_enb) / (current_rate * current_multiplier), 2)
+                'Remaining Hours to Complete': round(((df.iloc[i, cTC] * 0.8) - new_enb) / (current_rate * current_multiplier), 2),
+                'Invoice Amount': current_invoice,
+                'Ending ENB': ending_enb
             }
 
             new_df = pd.concat([new_df, pd.DataFrame([new_row])], ignore_index=True)
@@ -177,7 +184,7 @@ def show_preview():
         messagebox.showerror("No file loaded", "Please load a file first.")
 
 def confirm_and_override_columns():
-    global pNUM, cHr, pENB, cLA, cEA, mULT, aHR, cTC, pMG, cNM, jTD, nOTES
+    global pNUM, cHr, pENB, cLA, cEA, mULT, aHR, cTC, pMG, cNM, jTD, iNV nOTES
     table_window = None
 
     pNUM = find_column(df, 'Project Earnings')
@@ -191,6 +198,7 @@ def confirm_and_override_columns():
     pMG = find_column(df, 'Project\nManager')
     cNM = find_column(df, 'Client\nName')
     jTD = find_column(df, 'JTD\nBilled')
+    iNV = find_column(df, 'Invoice Amount')
     nOTES = find_column(df, 'Note')
 
     if not check_columns_defined():
