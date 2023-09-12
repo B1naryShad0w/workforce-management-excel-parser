@@ -184,7 +184,7 @@ def show_preview():
         messagebox.showerror("No file loaded", "Please load a file first.")
 
 def confirm_and_override_columns():
-    global pNUM, cHr, pENB, cLA, cEA, mULT, aHR, cTC, pMG, cNM, jTD, iNV nOTES
+    global pNUM, cHr, pENB, cLA, cEA, mULT, aHR, cTC, pMG, cNM, jTD, iNV, nOTES
     table_window = None
 
     pNUM = find_column(df, 'Project Earnings')
